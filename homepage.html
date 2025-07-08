@@ -399,53 +399,80 @@
             background-color: rgba(255, 255, 255, 0.1);
         }
 
-        /* Mobile Navbar Styles */
+        /* Offcanvas (Right Side Navbar) Styles */
         @media (max-width: 991.98px) {
-            .navbar-collapse {
-                margin-top: 15px;
-                border-radius: 0.5rem;
-                padding: 1rem;
-            }
-
-            /* Light mode mobile menu */
-            body:not(.dark) .navbar-collapse {
-                background-color: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
-            }
-            body:not(.dark) .navbar-collapse .nav-link {
+            .offcanvas-navbar {
+                position: fixed;
+                top: 0;
+                right: -260px;
+                width: 150px;
+                max-width: 80vw;
+                height: 100vh;
+                z-index: 1055;
+                transition: right 0.35s cubic-bezier(.4,0,.2,1);
+                display: flex;
+                flex-direction: column;
+                padding: 1.5rem;
+                /* MODIFIED: Default text color for light mode */
                 color: var(--text-light) !important;
             }
-            body:not(.dark) .navbar-collapse .nav-link:hover {
-                color: var(--primary-color) !important;
+            /* MODIFIED: Text color for dark mode */
+            body.dark .offcanvas-navbar {
+                color: var(--text-dark) !important;
             }
-            body:not(.dark) .navbar-collapse .btn-dark-mode-toggle svg {
-                color: var(--text-light) !important;
+            .offcanvas-navbar.show {
+                right: 0;
             }
-
-            /* Dark mode mobile menu */
-            body.dark .navbar-collapse {
-                background-color: rgba(30, 41, 59, 0.85);
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+            .offcanvas-navbar .offcanvas-header {
+                display: flex;
+                justify-content: flex-end;
+                margin-bottom: 1.5rem;
+                padding: 0;
+            }
+            .offcanvas-navbar .offcanvas-close-btn {
+                background: none;
+                border: none;
+                font-size: 2rem;
+                line-height: 1;
+                color: inherit;
+                opacity: 0.8;
+                cursor: pointer;
+            }
+            /* MODIFIED: Ensure links inherit color */
+            .offcanvas-navbar .nav-link, .offcanvas-navbar .dropdown-item {
+                font-size: 1.1rem;
+                padding: 0.8rem 0;
+                color: inherit !important;
+            }
+            .offcanvas-navbar .dropdown-menu {
+                position: static !important;
+                float: none;
+                background: none !important;
+                border: none;
+                box-shadow: none;
+                padding-left: 1rem;
+                margin-top: 0 !important;
+            }
+            .offcanvas-navbar .dropdown-toggle::after {
+                display: none; /* Hide dropdown arrow */
             }
         }
-
     </style>
 </head>
 
-<body x-data="{ isDarkMode: localStorage.getItem('isDarkMode') === 'true' }" @dark-mode-toggle.window="isDarkMode = $event.detail" :class="isDarkMode ? 'dark' : ''" x-init="$watch('isDarkMode', val => localStorage.setItem('isDarkMode', val))">
+<body x-data="{ isDarkMode: localStorage.getItem('isDarkMode') === 'true', showMobileNav: false }" @dark-mode-toggle.window="isDarkMode = $event.detail" :class="isDarkMode ? 'dark' : ''" x-init="$watch('isDarkMode', val => localStorage.setItem('isDarkMode', val))">
 <!-- Navbar Start -->
 <div class="container-fluid sticky-top liquid-glass" id="navbar-container">
     <div class="container">
-        <nav class="navbar navbar-expand-lg p-0">
+        <nav class="navbar navbar-expand-lg py-0">
             <a href="homepage.html" class="navbar-brand">
-                <h1>Matchars</h1>
+                <h1 class="m-0">Matchars</h1>
             </a>
-            <button type="button" class="navbar-toggler ms-auto me-0" data-bs-toggle="collapse"
-                    data-bs-target="#navbarCollapse">
+            <!-- Navbar Toggler for mobile -->
+            <button type="button" class="navbar-toggler d-lg-none ms-auto me-0" @click="showMobileNav = true" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
+            <!-- Desktop Navbar -->
             <div class="collapse navbar-collapse" id="navbarCollapse">
                 <div class="navbar-nav ms-auto align-items-center">
                     <a href="#hero-header" class="nav-item nav-link active">Home</a>
@@ -474,6 +501,43 @@
                 </div>
             </div>
         </nav>
+    </div>
+</div>
+
+<!-- Offcanvas Mobile Nav -->
+<div class="offcanvas-navbar d-lg-none liquid-glass" :class="{ 'show': showMobileNav }" @click.outside="showMobileNav = false" x-trap.noscroll.inert="showMobileNav" x-show="showMobileNav">
+    <div class="offcanvas-header">
+        <button class="offcanvas-close-btn" @click="showMobileNav = false" aria-label="Close">&times;</button>
+    </div>
+    <div class="navbar-nav ms-auto align-items-stretch p-3">
+
+        <div x-data="{ open: false }">
+            <a href="#" @click.prevent="open = !open" class="nav-link dropdown-toggle d-flex align-items-center">
+                <img src="img/team-4.jpg" alt="User Avatar" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover;">
+            </a>
+            <div x-show="open" @click.away="open = false" class="dropdown-menu show">
+                <a href="admin_dashboard.html" class="dropdown-item" @click="showMobileNav = false">Dashboard</a>
+                <a href="sign_in.html" class="dropdown-item" @click="showMobileNav = false">Log out</a>
+            </div>
+        </div>
+
+        <hr :class="isDarkMode ? 'border-secondary' : 'border-light'">
+
+        <a href="#hero-header" class="nav-item nav-link" @click="showMobileNav = false">Home</a>
+        <a href="#about" class="nav-item nav-link" @click="showMobileNav = false">About</a>
+        <a href="#contact" class="nav-item nav-link" @click="showMobileNav = false">Contact</a>
+        
+
+        <hr :class="isDarkMode ? 'border-secondary' : 'border-light'">
+
+        <button @click="$dispatch('dark-mode-toggle', !isDarkMode)" class="btn btn-dark-mode-toggle nav-item text-start d-flex align-items-center" style="background: transparent; border: none; padding: 0.8rem 0;">
+            <svg x-show="isDarkMode" style="width: 24px; height: 24px;" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.75 3.412a.818.818 0 01-.07.917 6.332 6.332 0 00-1.4 3.971c0 3.564 2.98 6.494 6.706 6.494a6.86 6.86 0 002.856-.617.818.818 0 011.1 1.047C19.593 18.614 16.218 21 12.283 21 7.18 21 3 16.973 3 11.956c0-4.563 3.46-8.31 7.925-8.948a.818.818 0 01.826.404z"></path>
+            </svg>
+            <svg x-show="!isDarkMode" style="width: 24px; height: 24px;" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+            </svg>
+        </button>
     </div>
 </div>
 <!-- Navbar End -->
